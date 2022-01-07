@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['auth','admin.access'])->group(function () {
     Route::get('/', [DashboardController::class, 'dashboard'])->name('home');
+    Route::get('/add-user', [DashboardController::class, 'add_user'])->name('add-user');
+    Route::post('/save-user', [DashboardController::class, 'save_user'])->name('save-user');
     Route::get('/dashboard/calculator/{locale}', [DashboardController::class, 'calculator'])->name('calculator-local');
     // Route::get('/dashboard/calculator/{locale}', [DashboardController::class, 'calculator'])->name('calculator');
     Route::get('/dashboard/ip-address-hits', [DashboardController::class, 'ip_address_hits'])->name('ip_address_hits');
@@ -26,9 +28,12 @@ Route::middleware(['auth','admin.access'])->group(function () {
     Route::get('/dashboard/subscription', [PaymentsController::class, 'subscription'])->name('subscription.payment');
     Route::get('/payment/make', [PaymentsController::class, 'make'])->name('payment.make');
     Route::get('/payment/makeSubscription', [PaymentsController::class, 'makeSubscription'])->name('subscription.make');
+    Route::get('/payment/makeSubscription', [PaymentsController::class, 'makeSubscription'])->name('subscription.make');
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
+    Route::post('/update-profile', [DashboardController::class, 'update_profile'])->name('update-profile');
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard/calculator/{locale}', [DashboardController::class, 'calculator'])->name('calculator');
     Route::get('/dashboard/calculator3', function () {

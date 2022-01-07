@@ -10,6 +10,7 @@ use App\Models\USPSPriceList;
 use App\Models\LoginHistory;
 use App\Models\User;
 use Stevebauman\Location\Facades\Location;
+use Illuminate\Support\Facades\Hash;
 use Browser;
 use Carbon\Carbon;
 
@@ -46,7 +47,7 @@ class DashboardController extends Controller
         return view('dashboard')->with(compact('monthly_hits','today_hits', 'login_states','total_hits'));
     }
 
-    public function calculator($locale='en')
+    public function calculator(Request $request,$locale='en')
     {
         App::setLocale($locale);
         $uspsprice_list = USPSPriceList::get();
@@ -55,21 +56,21 @@ class DashboardController extends Controller
             $price_list[$row->lbs.'lbs'] = $row->price;
         }
         
-        // $country = $request->country ?? '.com';
-        // $fba_price = $request->fba_price ?? '';
-        // $mf_price = $request->mf_price ?? '';
-        // $item_cost = $request->item_cost ?? '';
-        // $inbound_shipping = $request->inbound_shipping ?? '';
-        // $shipping = $request->shipping ?? '';
-        // $misc_fees = $request->misc_fees ?? '';
+        $country = $request->country ?? '.com';
+        $fba_price = $request->fba_price ?? '';
+        $mf_price = $request->mf_price ?? '';
+        $item_cost = $request->item_cost ?? '';
+        $inbound_shipping = $request->inbound_shipping ?? '';
+        $shipping = $request->shipping ?? '';
+        $misc_fees = $request->misc_fees ?? '';
 
-        $country = '.com';
-        $fba_price = '';
-        $mf_price = '';
-        $item_cost = '';
-        $inbound_shipping = '';
-        $shipping = '';
-        $misc_fees = '';
+        // $country = '.com';
+        // $fba_price = '';
+        // $mf_price = '';
+        // $item_cost = '';
+        // $inbound_shipping = '';
+        // $shipping = '';
+        // $misc_fees = '';
 
         // dump($price_list);
         return view('newcalculator')->with(compact('price_list','locale', 'country', 'fba_price','mf_price', 'item_cost', 'inbound_shipping', 'shipping', 'misc_fees'));
@@ -92,5 +93,46 @@ class DashboardController extends Controller
         $uspsprice_list = USPSPriceList::get();
         return view('usps_price_list')->with(compact('uspsprice_list'));
     }
-    
+    public function profile()
+    {
+        return view('profile');
+    }
+    public function update_profile(Request $request)
+    {
+        $this->validate($request,[
+            'profile_name' => 'required',
+        ]);
+
+        $user = User::findOrFail(Auth::id());
+        $user->name = $request->profile_name;
+        if(isset($request->password) && $request->password != ''){
+            $this->validate($request,[
+                'password' => 'string|min:8|confirmed'
+            ]);
+            $user->password = Hash::make($request->password);
+        }
+        $user->save();
+
+        return redirect()->back()->with('message','Data updated successfully.');
+    }
+    public function add_user()
+    {
+        return view('add_user');
+    }
+    public function save_user(Request $request)
+    {
+        $request->validate([
+            'profile_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|confirmed|min:8',
+        ]);
+
+        $user = new User;
+        $user->type = $request->user_type;
+        $user->name = $request->profile_name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->save();
+        return redirect()->back()->with('message','User added successfully.');
+    }
 }
